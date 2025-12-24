@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>冬夜来信 | Liquid Invitation</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --rose: #f6b7c6;
+            --peach: #f5d2c2;
+            --champagne: #f9ead9;
+            --warm: #f1c89b;
+            --cocoa: #1a0f12;
+            --merlot: #2a151b;
+            --mist: rgba(255, 255, 255, 0.14);
+            --pearl: #f9f0ea;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background:
+                radial-gradient(1200px 700px at 8% -5%, rgba(246, 183, 198, 0.22), transparent 60%),
+                radial-gradient(900px 700px at 92% 10%, rgba(245, 210, 194, 0.2), transparent 62%),
+                radial-gradient(820px 640px at 50% 120%, rgba(241, 200, 155, 0.16), transparent 60%),
+                linear-gradient(180deg, var(--merlot) 0%, #1b0f13 55%, #0b0709 100%);
+            overflow: hidden;
+            color: var(--champagne);
+            font-family: "Noto Serif SC", "Cormorant Garamond", serif;
+            user-select: none;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            background:
+                radial-gradient(520px 300px at 16% 20%, rgba(249, 234, 217, 0.12), transparent 70%),
+                radial-gradient(420px 240px at 85% 30%, rgba(246, 183, 198, 0.12), transparent 65%);
+            mix-blend-mode: screen;
+        }
+
+        body::after {
+            inset: -40%;
+            opacity: 0.55;
+            background-image:
+                radial-gradient(rgba(249, 234, 217, 0.35) 1px, transparent 1px),
+                radial-gradient(rgba(246, 183, 198, 0.2) 1px, transparent 1px);
+            background-size: 160px 160px, 240px 240px;
+            animation: snowDrift 36s linear infinite;
+            z-index: 2;
+        }
+
+        canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* UI Layer */
+        #ui-container {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: calc(24px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));
+            text-align: center;
+        }
+
+        .title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .title-kicker {
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            text-transform: none;
+            color: rgba(249, 234, 217, 0.7);
+        }
+
+        /* Title */
+        h1 {
+            margin: 0;
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: min(9.5vw, 62px);
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            background: linear-gradient(140deg, #ffffff 0%, var(--peach) 45%, var(--rose) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 12px 30px rgba(246, 183, 198, 0.4));
+            animation: titleLift 1.4s ease both;
+        }
+
+        /* Status Text */
+        #status-text {
+            color: rgba(249, 234, 217, 0.82);
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: 12px;
+            letter-spacing: 0.06em;
+            text-transform: none;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: rgba(19, 10, 13, 0.6);
+            border: 1px solid rgba(246, 183, 198, 0.2);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+            max-width: 92vw;
+            line-height: 1.5;
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, rgba(246, 183, 198, 0.2), rgba(10, 6, 8, 0.98) 60%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 2px solid rgba(246, 183, 198, 0.25);
+            border-top: 2px solid var(--peach);
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+            margin-bottom: 18px;
+            box-shadow: 0 0 24px rgba(246, 183, 198, 0.35);
+        }
+
+        .loading-text {
+            color: var(--peach);
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: 12px;
+            letter-spacing: 0.18em;
+            text-transform: none;
+        }
+
+        /* Invitation Card (Hidden initially) */
+        #invitation-card {
+            position: fixed;
+            top: 50%;
+            right: 8vw;
+            left: auto;
+            transform: translateY(-50%) scale(0.96);
+            width: min(76vw, 360px);
+            padding: 32px 28px;
+            background: linear-gradient(150deg, rgba(42, 21, 27, 0.76), rgba(14, 8, 10, 0.6));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(246, 183, 198, 0.22);
+            border-radius: 18px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55), inset 0 0 22px rgba(246, 183, 198, 0.12);
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 100;
+        }
+
+        #invitation-card::before {
+            content: "";
+            position: absolute;
+            inset: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(249, 234, 217, 0.12);
+            pointer-events: none;
+        }
+
+        #invitation-card.visible {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+            pointer-events: auto;
+        }
+
+        .card-title {
+            color: var(--peach);
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: 26px;
+            letter-spacing: 0.04em;
+            margin-bottom: 14px;
+            text-transform: none;
+        }
+
+        .card-body {
+            color: rgba(249, 234, 217, 0.9);
+            line-height: 1.7;
+            margin-bottom: 28px;
+            font-size: 16px;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-accept {
+            background: linear-gradient(120deg, var(--rose), var(--peach) 70%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 32px;
+            color: #2a151b;
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 999px;
+            letter-spacing: 0.06em;
+            text-transform: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 14px 26px rgba(246, 183, 198, 0.35);
+        }
+        .btn-accept:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(246, 183, 198, 0.4); }
+
+        .btn-close {
+            background: transparent;
+            border: 1px solid rgba(249, 234, 217, 0.3);
+            color: rgba(249, 234, 217, 0.75);
+            padding: 8px 22px;
+            border-radius: 999px;
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn-close:hover {
+            color: rgba(249, 234, 217, 0.95);
+            border-color: rgba(249, 234, 217, 0.55);
+            transform: translateY(-1px);
+        }
+
+        /* Hidden Vision Elements */
+        #vision-container {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            opacity: 0; 
+            pointer-events: none;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes snowDrift { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(120px, 200px, 0); } }
+        @keyframes titleLift { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 640px) {
+            .title-kicker { letter-spacing: 0.08em; }
+            h1 { font-size: min(10.5vw, 46px); letter-spacing: 0.03em; }
+            #invitation-card {
+                right: 50%;
+                left: 50%;
+                top: auto;
+                bottom: calc(16px + env(safe-area-inset-bottom));
+                width: min(90vw, 340px);
+                transform: translate(-50%, 0) scale(0.98);
+                padding: 28px 24px;
+            }
+            #invitation-card.visible {
+                transform: translate(-50%, 0) scale(1);
+            }
+            .card-title { font-size: 22px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body::after { animation: none; }
+            h1 { animation: none; }
+            #invitation-card { transition: none; }
+        }
+    </style>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+                "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="loading-text">点亮这束光</div>
+    </div>
+
+    <div id="ui-container">
+        <div class="title-group">
+            <div class="title-kicker">冬夜来信</div>
+            <h1>想和你靠近一点</h1>
+        </div>
+        <div id="status-text">张开·丝带光 / 握拳·水滴流 / 捏合·邀约</div>
+    </div>
+
+    <div id="invitation-card">
+        <div class="card-title">给你的一束光</div>
+        <div class="card-body">
+            冬夜很软，刚好让心靠近一点。<br>
+            如果你愿意，<br>
+            这个周末一起慢慢走一段路。<br>
+            不急不躁，刚刚好。
+        </div>
+        <div class="card-actions">
+            <button class="btn-accept" type="button" onclick="alert('周末见。')">愿意赴约</button>
+            <button class="btn-close" id="close-card" type="button">先收起</button>
+        </div>
+    </div>
+
+    <div id="vision-container">
+        <video id="webcam" autoplay playsinline></video>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+
+        // --- CONFIG & STATE ---
+        const CONFIG = {
+            particleCount: 1500,
+            scatterRadius: 20,
+            ribbonHeight: 40,
+            ribbonRadius: 7.5,
+            ribbonTurns: 5.6,
+            ribbonThickness: 1.4,
+            streamHeight: 44,
+            streamRadius: 3.2,
+            streamTurns: 4.2
+        };
+
+        const STATE = {
+            mode: 'SCATTER', // SCATTER, RIBBON, STREAM
+            handPresent: false,
+            handRotation: { x: 0, y: 0 },
+            pinchTriggered: false
+        };
+
+        // Arrays to store target positions for each mode
+        const targets = {
+            SCATTER: [],
+            RIBBON: [],
+            STREAM: []
+        };
+
+        const currentPositions = new Float32Array(CONFIG.particleCount * 3);
+        const flowSeeds = new Float32Array(CONFIG.particleCount);
+        const flowSpeeds = new Float32Array(CONFIG.particleCount);
+        const dropScales = new Float32Array(CONFIG.particleCount);
+
+        let scene, camera, renderer, composer, mainGroup;
+        let instancedMesh;
+        let dummy = new THREE.Object3D();
+        let clock = new THREE.Clock();
+
+        // --- INIT THREE.JS ---
+        async function init() {
+            // 1. Scene
+            scene = new THREE.Scene();
+            // camera pos
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 60);
+
+            // 2. Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ReinhardToneMapping;
+            renderer.toneMappingExposure = 1.4;
+            document.body.appendChild(renderer.domElement);
+
+            // 3. Environment & Lighting
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            // Colorful lights for water refraction
+            const l1 = new THREE.PointLight(0xf7d8c5, 1700, 110); // Peach
+            l1.position.set(16, 22, 18);
+            scene.add(l1);
+            
+            const l2 = new THREE.PointLight(0xf6b7c6, 1300, 90); // Rose
+            l2.position.set(-18, -6, 18);
+            scene.add(l2);
+
+            const l3 = new THREE.PointLight(0xf9ead9, 800, 80); // Soft fill
+            l3.position.set(0, -18, 24);
+            scene.add(l3);
+
+            // 4. Post Processing (Bloom)
+            const renderScene = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.strength = 0.75;
+            bloomPass.radius = 0.55;
+            bloomPass.threshold = 0.55;
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+
+            // 5. Main Group
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+            mainGroup.scale.set(0.95, 1.12, 0.95);
+
+            // 6. Generate Particles
+            initParticles();
+
+            // 7. Handlers
+            window.addEventListener('resize', onWindowResize);
+            const closeButton = document.getElementById('close-card');
+            if (closeButton) {
+                closeButton.addEventListener('click', hideInvitation);
+            }
+            
+            // 8. Start Vision
+            setupVision();
+            
+            animate();
+        }
+
+        // --- PARTICLE SYSTEM (LIQUID MORPHING) ---
+        function initParticles() {
+            // Material: Water/Glass
+            const material = new THREE.MeshPhysicalMaterial({
+                color: 0xf9f0ea,
+                metalness: 0.08,
+                roughness: 0.04,
+                transmission: 1.0, // Glass-like
+                thickness: 2.6,
+                ior: 1.38,
+                envMapIntensity: 1.5,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.15,
+                emissive: new THREE.Color(0x33151b),
+                emissiveIntensity: 0.25,
+                attenuationColor: new THREE.Color(0xf6b7c6),
+                attenuationDistance: 1.4
+            });
+
+            const geometry = new THREE.SphereGeometry(0.45, 20, 20);
+            instancedMesh = new THREE.InstancedMesh(geometry, material, CONFIG.particleCount);
+            instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            mainGroup.add(instancedMesh);
+
+            // Pre-calculate positions for different shapes
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                flowSeeds[i] = Math.random() * Math.PI * 2;
+                flowSpeeds[i] = 0.45 + Math.random() * 0.9;
+                let baseScale = 0.55 + Math.random() * 0.7;
+                dropScales[i] = baseScale;
+                
+                // 1. SCATTER (Random cloud)
+                const r = CONFIG.scatterRadius;
+                const scatterAngle = Math.random() * Math.PI * 2;
+                const scatterRadius = Math.pow(Math.random(), 0.7) * r;
+                const scatterY = (Math.random() - 0.5) * r * 2.4;
+                targets.SCATTER.push(
+                    Math.cos(scatterAngle) * scatterRadius * 0.6,
+                    scatterY,
+                    Math.sin(scatterAngle) * scatterRadius * 0.6
+                );
+
+                // 2. RIBBON (Slender flowing ribbon)
+                const t = i / (CONFIG.particleCount - 1);
+                const ribbonAngle = t * Math.PI * 2 * CONFIG.ribbonTurns;
+                const ribbonRadius = (0.35 + 0.65 * Math.sin(Math.PI * t)) * CONFIG.ribbonRadius;
+                const ribbonOffset = (Math.random() - 0.5) * CONFIG.ribbonThickness;
+                const rx = Math.cos(ribbonAngle) * (ribbonRadius + ribbonOffset);
+                const rz = Math.sin(ribbonAngle) * (ribbonRadius + ribbonOffset);
+                const ry = (t - 0.5) * CONFIG.ribbonHeight;
+                targets.RIBBON.push(rx, ry, rz);
+
+                // 3. STREAM (Thin water stream)
+                const s = Math.random();
+                const streamAngle = s * Math.PI * 2 * CONFIG.streamTurns + flowSeeds[i] * 0.25;
+                const streamRadius = Math.pow(1 - s, 1.2) * CONFIG.streamRadius;
+                const sx = Math.cos(streamAngle) * streamRadius;
+                const sz = Math.sin(streamAngle) * streamRadius;
+                const sy = (s - 0.5) * CONFIG.streamHeight;
+                targets.STREAM.push(sx, sy, sz);
+            }
+
+            for (let i = 0; i < CONFIG.particleCount * 3; i++) {
+                currentPositions[i] = targets.SCATTER[i];
+            }
+
+            // Initialize current positions (start at scatter)
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                dummy.position.set(targets.SCATTER[i*3], targets.SCATTER[i*3+1], targets.SCATTER[i*3+2]);
+                dummy.updateMatrix();
+                instancedMesh.setMatrixAt(i, dummy.matrix);
+            }
+            instancedMesh.instanceMatrix.needsUpdate = true;
+        }
+
+        // --- COMPUTER VISION ---
+        let handLandmarker;
+        let video;
+
+        async function setupVision() {
+            try {
+                const vision = await FilesetResolver.forVisionTasks(
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+                );
+                
+                handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
+                        delegate: "GPU"
+                    },
+                    runningMode: "VIDEO",
+                    numHands: 1
+                });
+
+                video = document.getElementById("webcam");
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.addEventListener("loadeddata", () => {
+                    // Hide loader
+                    document.getElementById('loader').style.opacity = 0;
+                    setTimeout(() => document.getElementById('loader').remove(), 1000);
+                    
+                    document.getElementById('status-text').innerText = "张开·丝带光 / 握拳·水滴流 / 捏合·邀约";
+                    predictWebcam();
+                });
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status-text').innerText = "需要开启摄像头";
+            }
+        }
+
+        let lastVideoTime = -1;
+        async function predictWebcam() {
+            let startTimeMs = performance.now();
+            if (video.currentTime !== lastVideoTime) {
+                lastVideoTime = video.currentTime;
+                const results = handLandmarker.detectForVideo(video, startTimeMs);
+
+                if (results.landmarks.length > 0) {
+                    STATE.handPresent = true;
+                    processGestures(results.landmarks[0]);
+                } else {
+                    STATE.handPresent = false;
+                    STATE.mode = 'SCATTER';
+                    document.getElementById('status-text').innerText = "等你靠近 · 张开/握拳/捏合";
+                }
+            }
+            requestAnimationFrame(predictWebcam);
+        }
+
+        function dist(p1, p2) {
+            return Math.hypot(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
+        }
+
+        function processGestures(landmarks) {
+            const wrist = landmarks[0];
+            const thumb = landmarks[4];
+            const index = landmarks[8];
+            const tips = [12, 16, 20].map(i => landmarks[i]);
+
+            // 1. Rotation Map
+            const palm = landmarks[9];
+            STATE.handRotation.y = (palm.x - 0.5) * -3; // Mirror effect
+            STATE.handRotation.x = (palm.y - 0.5) * 2;
+
+            // 2. Gesture Detection
+            // Avg dist from fingertips to wrist
+            const avgDist = tips.reduce((sum, t) => sum + dist(t, wrist), 0) / tips.length;
+            const pinchDist = dist(thumb, index);
+
+            // Logic
+            if (pinchDist < 0.05) {
+                // PINCH -> Invite
+                if (!STATE.pinchTriggered) {
+                    STATE.pinchTriggered = true;
+                    STATE.mode = 'RIBBON';
+                    document.getElementById('invitation-card').classList.add('visible');
+                    document.getElementById('status-text').innerText = "邀请已点亮";
+                }
+            } else if (avgDist < 0.25) {
+                // FIST -> Stream
+                STATE.mode = 'STREAM';
+                document.getElementById('status-text').innerText = "手势：握拳 · 水滴流";
+            } else if (avgDist > 0.35) {
+                // OPEN -> Ribbon
+                STATE.mode = 'RIBBON';
+                document.getElementById('status-text').innerText = "手势：张开 · 丝带光";
+            }
+        }
+
+        function hideInvitation() {
+            const card = document.getElementById('invitation-card');
+            if (!card) return;
+            card.classList.remove('visible');
+            STATE.pinchTriggered = false;
+            document.getElementById('status-text').innerText = "张开·丝带光 / 握拳·水滴流 / 捏合·邀约";
+        }
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Lerp Logic
+            const targetArray = targets[STATE.mode];
+            const lerpSpeed = 0.05;
+            const time = clock.getElapsedTime();
+
+            // Rotate Main Group based on hand
+            mainGroup.rotation.y += (STATE.handRotation.y - mainGroup.rotation.y) * 0.08;
+            mainGroup.rotation.x += (STATE.handRotation.x - mainGroup.rotation.x) * 0.08;
+
+            // Auto rotate on gesture modes
+            if(STATE.mode !== 'SCATTER') {
+                mainGroup.rotation.y += 0.0035;
+            }
+
+            // Update Particles
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                const ix3 = i * 3;
+                
+                // Lerp current to target
+                currentPositions[ix3] += (targetArray[ix3] - currentPositions[ix3]) * lerpSpeed;
+                currentPositions[ix3+1] += (targetArray[ix3+1] - currentPositions[ix3+1]) * lerpSpeed;
+                currentPositions[ix3+2] += (targetArray[ix3+2] - currentPositions[ix3+2]) * lerpSpeed;
+
+                // Add liquid flow offsets
+                const flow = Math.sin(time * flowSpeeds[i] + flowSeeds[i]);
+                const drift = Math.cos(time * flowSpeeds[i] * 0.8 + flowSeeds[i]);
+                const shimmer = Math.sin(time * 0.6 + flowSeeds[i]) * 0.06;
+
+                dummy.position.set(
+                    currentPositions[ix3] + drift * 0.09,
+                    currentPositions[ix3+1] + flow * 0.12,
+                    currentPositions[ix3+2] + shimmer
+                );
+                
+                // Scale effect based on mode
+                let scale = dropScales[i];
+                if(STATE.mode === 'STREAM') scale *= 1.1;
+                if(STATE.mode === 'RIBBON') scale *= 0.98;
+                dummy.scale.set(scale, scale, scale);
+
+                dummy.updateMatrix();
+                instancedMesh.setMatrixAt(i, dummy.matrix);
+            }
+            instancedMesh.instanceMatrix.needsUpdate = true;
+
+            composer.render();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        init();
+    </script>
+</body>
+</html>
