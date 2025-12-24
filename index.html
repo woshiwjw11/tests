@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>冬夜来信 | Liquid Invitation</title>
+    <title>平安夜平安 | Liquid Invitation</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -261,6 +261,55 @@
             transform: translateY(-1px);
         }
 
+        #blessing-panel {
+            position: fixed;
+            left: 6vw;
+            top: 50%;
+            transform: translateY(-50%);
+            width: min(76vw, 280px);
+            padding: 18px 18px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(246, 183, 198, 0.18);
+            background: rgba(20, 10, 13, 0.42);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+            z-index: 9;
+            pointer-events: none;
+        }
+
+        .blessing-title {
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: 13px;
+            letter-spacing: 0.14em;
+            color: var(--peach);
+            margin-bottom: 10px;
+        }
+
+        .blessing-line {
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: 16px;
+            color: rgba(249, 234, 217, 0.92);
+            line-height: 1.7;
+            min-height: 52px;
+            transition: opacity 0.5s ease;
+        }
+
+        .blessing-sub {
+            margin-top: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: rgba(249, 234, 217, 0.7);
+        }
+
+        .blessing-legend {
+            margin-top: 12px;
+            font-size: 11px;
+            line-height: 1.6;
+            color: rgba(249, 234, 217, 0.55);
+            letter-spacing: 0.08em;
+        }
+
         /* Hidden Vision Elements */
         #vision-container {
             position: fixed;
@@ -290,6 +339,12 @@
                 transform: translate(-50%, 0) scale(1);
             }
             .card-title { font-size: 22px; }
+            #blessing-panel {
+                left: 50%;
+                top: 18%;
+                transform: translate(-50%, 0);
+                width: min(88vw, 320px);
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -313,27 +368,33 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <div class="loading-text">点亮这束光</div>
+        <div class="loading-text">正在准备烟花</div>
     </div>
 
     <div id="ui-container">
         <div class="title-group">
-            <div class="title-kicker">冬夜来信</div>
-            <h1>想和你靠近一点</h1>
+            <div class="title-kicker">平安夜邀请</div>
+            <h1>这个周末见一面</h1>
         </div>
-        <div id="status-text">张开·丝带光 / 握拳·水滴流 / 捏合·邀约</div>
+        <div id="status-text">张开·烟花 / 握拳·收束 / 捏合·邀约</div>
+    </div>
+
+    <div id="blessing-panel">
+        <div class="blessing-title">平安夜祝福</div>
+        <div class="blessing-line" id="blessing-line">平安夜快乐，愿你平安喜乐。</div>
+        <div class="blessing-sub">愿你今夜安稳，明日顺遂。</div>
+        <div class="blessing-legend">拇指·亮度 食指·绽放 中指·高度 无名指·旋转 小指·流动</div>
     </div>
 
     <div id="invitation-card">
-        <div class="card-title">给你的一束光</div>
+        <div class="card-title">平安夜邀请</div>
         <div class="card-body">
-            冬夜很软，刚好让心靠近一点。<br>
-            如果你愿意，<br>
-            这个周末一起慢慢走一段路。<br>
-            不急不躁，刚刚好。
+            平安夜快乐。<br>
+            这个周末如果方便，<br>
+            一起吃个饭或喝杯热饮，聊聊天？
         </div>
         <div class="card-actions">
-            <button class="btn-accept" type="button" onclick="alert('周末见。')">愿意赴约</button>
+            <button class="btn-accept" type="button" onclick="alert('周末见。')">确认赴约</button>
             <button class="btn-close" id="close-card" type="button">先收起</button>
         </div>
     </div>
@@ -352,35 +413,50 @@
 
         // --- CONFIG & STATE ---
         const CONFIG = {
-            particleCount: 1500,
-            scatterRadius: 20,
-            ribbonHeight: 40,
-            ribbonRadius: 7.5,
-            ribbonTurns: 5.6,
-            ribbonThickness: 1.4,
-            streamHeight: 44,
-            streamRadius: 3.2,
-            streamTurns: 4.2
+            particleCount: 1600,
+            scatterRadius: 18,
+            gatherRadius: 4.5,
+            burstRadius: 20,
+            burstVariance: 1.8,
+            burstHeight: 28
         };
 
         const STATE = {
-            mode: 'SCATTER', // SCATTER, RIBBON, STREAM
+            mode: 'SCATTER', // SCATTER, GATHER, BURST
             handPresent: false,
             handRotation: { x: 0, y: 0 },
             pinchTriggered: false
         };
 
+        const CONTROL = {
+            spread: 1,
+            height: 1,
+            twist: 0,
+            glow: 0.22,
+            size: 1,
+            flow: 1
+        };
+
+        const BLESSINGS = {
+            SCATTER: "平安夜快乐，愿你平安喜乐。",
+            GATHER: "收束片刻，愿你心安。",
+            BURST: "愿平安在你身边绽放。",
+            INVITE: "想和你见一面，聊聊天。"
+        };
+
         // Arrays to store target positions for each mode
         const targets = {
             SCATTER: [],
-            RIBBON: [],
-            STREAM: []
+            GATHER: [],
+            BURST: []
         };
 
         const currentPositions = new Float32Array(CONFIG.particleCount * 3);
         const flowSeeds = new Float32Array(CONFIG.particleCount);
         const flowSpeeds = new Float32Array(CONFIG.particleCount);
         const dropScales = new Float32Array(CONFIG.particleCount);
+        const rotSeeds = new Float32Array(CONFIG.particleCount * 3);
+        const rotSpeeds = new Float32Array(CONFIG.particleCount);
 
         let scene, camera, renderer, composer, mainGroup;
         let instancedMesh;
@@ -460,21 +536,25 @@
             // Material: Water/Glass
             const material = new THREE.MeshPhysicalMaterial({
                 color: 0xf9f0ea,
-                metalness: 0.08,
-                roughness: 0.04,
-                transmission: 1.0, // Glass-like
-                thickness: 2.6,
-                ior: 1.38,
-                envMapIntensity: 1.5,
-                clearcoat: 1.0,
-                clearcoatRoughness: 0.15,
+                metalness: 0.12,
+                roughness: 0.18,
+                transmission: 0.45,
+                thickness: 1.2,
+                ior: 1.25,
+                envMapIntensity: 1.2,
+                clearcoat: 0.9,
+                clearcoatRoughness: 0.2,
                 emissive: new THREE.Color(0x33151b),
-                emissiveIntensity: 0.25,
+                emissiveIntensity: 0.24,
                 attenuationColor: new THREE.Color(0xf6b7c6),
-                attenuationDistance: 1.4
+                attenuationDistance: 1.1,
+                transparent: true,
+                opacity: 0.9,
+                flatShading: true,
+                side: THREE.DoubleSide
             });
 
-            const geometry = new THREE.SphereGeometry(0.45, 20, 20);
+            const geometry = new THREE.TetrahedronGeometry(0.6, 0);
             instancedMesh = new THREE.InstancedMesh(geometry, material, CONFIG.particleCount);
             instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
             mainGroup.add(instancedMesh);
@@ -483,6 +563,10 @@
             for (let i = 0; i < CONFIG.particleCount; i++) {
                 flowSeeds[i] = Math.random() * Math.PI * 2;
                 flowSpeeds[i] = 0.45 + Math.random() * 0.9;
+                rotSeeds[i * 3] = Math.random() * Math.PI * 2;
+                rotSeeds[i * 3 + 1] = Math.random() * Math.PI * 2;
+                rotSeeds[i * 3 + 2] = Math.random() * Math.PI * 2;
+                rotSpeeds[i] = 0.25 + Math.random() * 0.5;
                 let baseScale = 0.55 + Math.random() * 0.7;
                 dropScales[i] = baseScale;
                 
@@ -490,31 +574,34 @@
                 const r = CONFIG.scatterRadius;
                 const scatterAngle = Math.random() * Math.PI * 2;
                 const scatterRadius = Math.pow(Math.random(), 0.7) * r;
-                const scatterY = (Math.random() - 0.5) * r * 2.4;
+                const scatterY = (Math.random() - 0.5) * r * 2.2;
                 targets.SCATTER.push(
-                    Math.cos(scatterAngle) * scatterRadius * 0.6,
+                    Math.cos(scatterAngle) * scatterRadius * 0.7,
                     scatterY,
-                    Math.sin(scatterAngle) * scatterRadius * 0.6
+                    Math.sin(scatterAngle) * scatterRadius * 0.7
                 );
 
-                // 2. RIBBON (Slender flowing ribbon)
-                const t = i / (CONFIG.particleCount - 1);
-                const ribbonAngle = t * Math.PI * 2 * CONFIG.ribbonTurns;
-                const ribbonRadius = (0.35 + 0.65 * Math.sin(Math.PI * t)) * CONFIG.ribbonRadius;
-                const ribbonOffset = (Math.random() - 0.5) * CONFIG.ribbonThickness;
-                const rx = Math.cos(ribbonAngle) * (ribbonRadius + ribbonOffset);
-                const rz = Math.sin(ribbonAngle) * (ribbonRadius + ribbonOffset);
-                const ry = (t - 0.5) * CONFIG.ribbonHeight;
-                targets.RIBBON.push(rx, ry, rz);
+                // 2. GATHER (Tight cluster)
+                const gAngle = Math.random() * Math.PI * 2;
+                const gRadius = Math.pow(Math.random(), 1.6) * CONFIG.gatherRadius;
+                const gY = (Math.random() - 0.5) * CONFIG.gatherRadius * 1.4;
+                targets.GATHER.push(
+                    Math.cos(gAngle) * gRadius,
+                    gY,
+                    Math.sin(gAngle) * gRadius
+                );
 
-                // 3. STREAM (Thin water stream)
-                const s = Math.random();
-                const streamAngle = s * Math.PI * 2 * CONFIG.streamTurns + flowSeeds[i] * 0.25;
-                const streamRadius = Math.pow(1 - s, 1.2) * CONFIG.streamRadius;
-                const sx = Math.cos(streamAngle) * streamRadius;
-                const sz = Math.sin(streamAngle) * streamRadius;
-                const sy = (s - 0.5) * CONFIG.streamHeight;
-                targets.STREAM.push(sx, sy, sz);
+                // 3. BURST (Firework bloom)
+                const u = Math.random() * 2 - 1;
+                const phi = Math.acos(u);
+                const theta = Math.random() * Math.PI * 2;
+                const shell = 0.7 + Math.random() * 0.3;
+                const baseRadius = CONFIG.burstRadius * shell;
+                const variance = (Math.random() - 0.5) * CONFIG.burstVariance;
+                const bx = Math.cos(theta) * Math.sin(phi) * (baseRadius + variance);
+                const bz = Math.sin(theta) * Math.sin(phi) * (baseRadius + variance);
+                const by = Math.cos(phi) * (baseRadius * 0.7 + CONFIG.burstHeight * 0.2);
+                targets.BURST.push(bx, by, bz);
             }
 
             for (let i = 0; i < CONFIG.particleCount * 3; i++) {
@@ -557,13 +644,15 @@
                     document.getElementById('loader').style.opacity = 0;
                     setTimeout(() => document.getElementById('loader').remove(), 1000);
                     
-                    document.getElementById('status-text').innerText = "张开·丝带光 / 握拳·水滴流 / 捏合·邀约";
+                    document.getElementById('status-text').innerText = "张开·烟花 / 握拳·收束 / 捏合·邀约";
+                    setBlessing(BLESSINGS.SCATTER);
                     predictWebcam();
                 });
 
             } catch (err) {
                 console.error(err);
                 document.getElementById('status-text').innerText = "需要开启摄像头";
+                setBlessing("平安夜快乐，愿你平安喜乐。");
             }
         }
 
@@ -581,6 +670,7 @@
                     STATE.handPresent = false;
                     STATE.mode = 'SCATTER';
                     document.getElementById('status-text').innerText = "等你靠近 · 张开/握拳/捏合";
+                    setBlessing(BLESSINGS.SCATTER);
                 }
             }
             requestAnimationFrame(predictWebcam);
@@ -595,6 +685,9 @@
             const thumb = landmarks[4];
             const index = landmarks[8];
             const tips = [12, 16, 20].map(i => landmarks[i]);
+            const middle = landmarks[12];
+            const ring = landmarks[16];
+            const pinky = landmarks[20];
 
             // 1. Rotation Map
             const palm = landmarks[9];
@@ -605,24 +698,39 @@
             // Avg dist from fingertips to wrist
             const avgDist = tips.reduce((sum, t) => sum + dist(t, wrist), 0) / tips.length;
             const pinchDist = dist(thumb, index);
+            const thumbExtent = normalizeExtent(dist(thumb, wrist));
+            const indexExtent = normalizeExtent(dist(index, wrist));
+            const middleExtent = normalizeExtent(dist(middle, wrist));
+            const ringExtent = normalizeExtent(dist(ring, wrist));
+            const pinkyExtent = normalizeExtent(dist(pinky, wrist));
+
+            CONTROL.spread = 0.75 + indexExtent * 1.1;
+            CONTROL.height = 0.85 + middleExtent * 0.9;
+            CONTROL.twist = (ringExtent - 0.5) * 0.9;
+            CONTROL.glow = 0.16 + thumbExtent * 0.45;
+            CONTROL.size = 0.85 + thumbExtent * 0.4;
+            CONTROL.flow = 0.75 + pinkyExtent * 0.95;
 
             // Logic
             if (pinchDist < 0.05) {
                 // PINCH -> Invite
                 if (!STATE.pinchTriggered) {
                     STATE.pinchTriggered = true;
-                    STATE.mode = 'RIBBON';
+                    STATE.mode = 'BURST';
                     document.getElementById('invitation-card').classList.add('visible');
                     document.getElementById('status-text').innerText = "邀请已点亮";
+                    setBlessing(BLESSINGS.INVITE);
                 }
             } else if (avgDist < 0.25) {
-                // FIST -> Stream
-                STATE.mode = 'STREAM';
-                document.getElementById('status-text').innerText = "手势：握拳 · 水滴流";
+                // FIST -> Gather
+                STATE.mode = 'GATHER';
+                document.getElementById('status-text').innerText = "手势：握拳 · 收束";
+                setBlessing(BLESSINGS.GATHER);
             } else if (avgDist > 0.35) {
-                // OPEN -> Ribbon
-                STATE.mode = 'RIBBON';
-                document.getElementById('status-text').innerText = "手势：张开 · 丝带光";
+                // OPEN -> Burst
+                STATE.mode = 'BURST';
+                document.getElementById('status-text').innerText = "手势：张开 · 烟花";
+                setBlessing(BLESSINGS.BURST);
             }
         }
 
@@ -631,7 +739,26 @@
             if (!card) return;
             card.classList.remove('visible');
             STATE.pinchTriggered = false;
-            document.getElementById('status-text').innerText = "张开·丝带光 / 握拳·水滴流 / 捏合·邀约";
+            STATE.mode = 'BURST';
+            document.getElementById('status-text').innerText = "张开·烟花 / 握拳·收束 / 捏合·邀约";
+            setBlessing(BLESSINGS.BURST);
+        }
+
+        function setBlessing(text) {
+            const el = document.getElementById('blessing-line');
+            if (!el || el.textContent === text) return;
+            el.style.opacity = '0';
+            setTimeout(() => {
+                el.textContent = text;
+                el.style.opacity = '1';
+            }, 180);
+        }
+
+        function normalizeExtent(value) {
+            const min = 0.18;
+            const max = 0.48;
+            const t = (value - min) / (max - min);
+            return Math.min(1, Math.max(0, t));
         }
 
         // --- ANIMATION LOOP ---
@@ -642,6 +769,12 @@
             const targetArray = targets[STATE.mode];
             const lerpSpeed = 0.05;
             const time = clock.getElapsedTime();
+            const twist = CONTROL.twist;
+            const twistCos = Math.cos(twist);
+            const twistSin = Math.sin(twist);
+            const burstPulse = STATE.mode === 'BURST' ? 0.92 + Math.sin(time * 1.2) * 0.08 : 1;
+
+            instancedMesh.material.emissiveIntensity = CONTROL.glow;
 
             // Rotate Main Group based on hand
             mainGroup.rotation.y += (STATE.handRotation.y - mainGroup.rotation.y) * 0.08;
@@ -656,27 +789,54 @@
             for (let i = 0; i < CONFIG.particleCount; i++) {
                 const ix3 = i * 3;
                 
+                let tx = targetArray[ix3];
+                let ty = targetArray[ix3+1];
+                let tz = targetArray[ix3+2];
+
+                if (STATE.mode === 'BURST') {
+                    const burstScale = CONTROL.spread * burstPulse;
+                    tx *= burstScale;
+                    tz *= burstScale;
+                    ty *= CONTROL.height * burstPulse;
+                } else if (STATE.mode === 'GATHER') {
+                    tx *= 0.85;
+                    tz *= 0.85;
+                    ty *= 0.9;
+                }
+
+                const rx = (tx * twistCos) - (tz * twistSin);
+                const rz = (tx * twistSin) + (tz * twistCos);
+
                 // Lerp current to target
-                currentPositions[ix3] += (targetArray[ix3] - currentPositions[ix3]) * lerpSpeed;
-                currentPositions[ix3+1] += (targetArray[ix3+1] - currentPositions[ix3+1]) * lerpSpeed;
-                currentPositions[ix3+2] += (targetArray[ix3+2] - currentPositions[ix3+2]) * lerpSpeed;
+                currentPositions[ix3] += (rx - currentPositions[ix3]) * lerpSpeed;
+                currentPositions[ix3+1] += (ty - currentPositions[ix3+1]) * lerpSpeed;
+                currentPositions[ix3+2] += (rz - currentPositions[ix3+2]) * lerpSpeed;
 
                 // Add liquid flow offsets
                 const flow = Math.sin(time * flowSpeeds[i] + flowSeeds[i]);
                 const drift = Math.cos(time * flowSpeeds[i] * 0.8 + flowSeeds[i]);
                 const shimmer = Math.sin(time * 0.6 + flowSeeds[i]) * 0.06;
+                const flowAmp = CONTROL.flow;
 
                 dummy.position.set(
-                    currentPositions[ix3] + drift * 0.09,
-                    currentPositions[ix3+1] + flow * 0.12,
+                    currentPositions[ix3] + drift * 0.08 * flowAmp,
+                    currentPositions[ix3+1] + flow * 0.14 * flowAmp,
                     currentPositions[ix3+2] + shimmer
                 );
-                
+
                 // Scale effect based on mode
-                let scale = dropScales[i];
-                if(STATE.mode === 'STREAM') scale *= 1.1;
-                if(STATE.mode === 'RIBBON') scale *= 0.98;
-                dummy.scale.set(scale, scale, scale);
+                const sparkle = STATE.mode === 'BURST' ? 0.85 + Math.sin(time * 3.1 + flowSeeds[i]) * 0.15 : 1;
+                let scale = dropScales[i] * CONTROL.size * sparkle;
+                const longAxis = scale * (STATE.mode === 'BURST' ? 1.55 : 1.2);
+                const shortAxis = scale * 0.55;
+                dummy.scale.set(longAxis, shortAxis, scale * 0.6);
+
+                const spin = time * rotSpeeds[i] * (0.6 + flowAmp * 0.35);
+                dummy.rotation.set(
+                    rotSeeds[ix3] + spin * 0.9,
+                    rotSeeds[ix3 + 1] + spin * 0.7,
+                    rotSeeds[ix3 + 2] + spin * 0.5
+                );
 
                 dummy.updateMatrix();
                 instancedMesh.setMatrixAt(i, dummy.matrix);
